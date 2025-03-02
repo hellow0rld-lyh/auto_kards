@@ -55,12 +55,11 @@ def getJWTKey(headers):
         pass
         # print("响应内容：", response.json())
         JWT_KEY = response.json().get("jwt")
-        headers.update({"Authorization": JWT_KEY})  # 更新JWT_KEY
+        headers.update({"Authorization": JWT_KEY})  
         # print("JWT_KEY:", JWT_KEY)
-        return JWT_KEY
+        return JWT_KEY  # 更新JWT_KEY
     else:
         # print("请求失败！")
-        pass
         # print("状态码：", response.status_code)
         print("响应内容：", response.text)
 def JJCInit(headers):   
@@ -461,6 +460,7 @@ def main():
     
     while True:
         global isTimeToRest
+        global JWT_KEY
         if isresting:    
             print("休息中...")
             time.sleep(300)
@@ -469,6 +469,8 @@ def main():
             if "False" in isTimeToRest.text or "0" in isTimeToRest.text:
                 isresting=False
                 print("休息结束")
+                JWT_KEY = "JWT "+getJWTKey(headers)
+                headers.update({"Authorization": JWT_KEY})
             elif "True" in isTimeToRest.text or "1" in isTimeToRest.text:
                 isresting=True
                 print("继续休息")
