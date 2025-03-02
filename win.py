@@ -460,7 +460,6 @@ def main():
     
     while True:
         global isTimeToRest
-        global JWT_KEY
         if isresting:    
             print("休息中...")
             time.sleep(300)
