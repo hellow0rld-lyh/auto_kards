@@ -82,7 +82,9 @@ def getJWTKey(headers):
         # print("状态码：", response.status_code)
         print("响应内容：", response.text)
 
-getJWTKey(headers)
+# getJWTKey(headers)
+xxx=requests.get("https://raw.githubusercontent.com/hellow0rld-lyh/kardsRest/refs/heads/main/isTimeToRest")
+print(xxx.text)
 # createJJCURL = f"https://kards.live.1939api.com/draft/{playerID}/deck/create"
 # while True:
 #             data = {"pick":1}

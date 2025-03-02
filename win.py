@@ -429,102 +429,123 @@ def main():
         print("新手任务已完成,请将isNewACount设置为False")
         sys.exit()
         
-
+    isresting=False
 
     while True:
-        try:
-            print("新一轮比赛已开始")
-            #创建比赛
-            r1=requests.post(CreateMatchesUrl,headers=headers,json=data1,verify=False,timeout=3)
-            #print(r1.text)
-            if "OK" in r1.text:
+        global isTimeToRest
+        if isresting:    
+            print("休息中...")
+            time.sleep(300)
+            isTimeToRest=requests.get("https://raw.githubusercontent.com/hellow0rld-lyh/kardsRest/refs/heads/main/isTimeToRest")
+            print("isTimeToRest:",isTimeToRest.text)
+            if "False" in isTimeToRest.text or "0" in isTimeToRest.text:
+                isresting=False
+                print("休息结束")
+            elif "True" in isTimeToRest.text or "1" in isTimeToRest.text:
+                isresting=True
+                print("继续休息")
+        else:    
+            try:
+                print("新一轮比赛已开始")
+                #创建比赛
+                r1=requests.post(CreateMatchesUrl,headers=headers,json=data1,verify=False,timeout=3)
                 #print(r1.text)
-                time.sleep(1)
-            #获取比赛信息
-            getMatcheID(getMatchesInfoUrl,headers)
-            #随机执行一些动作
-            actionURL = f"https://kards.live.1939api.com/matches/v2/{matchesID}/actions"
-            n = 1
-            #pingUpload(actionURL,headers,n)
-
-            XStartOfGame(actionURL,headers)
-
-            #deckCollet(headers)
-
-            XActionStartOfTurn(actionURL,headers)
-
-            uploadPlayerPCInfo(headers)
-
-            #for n in range(1,12):
-            #    choiseCard(actionURL,headers,n)
-            #choiseCard(actionURL,headers,n)
-
-            GetMatchData(actionURL,headers,n)
-
-            winOrLost = "win" if random.random() < 1 else "lost"
-            if winOrLost == "win":
-            #print("比赛中...")
-            #Matchtime=random.randint(240,242)
-            #自定义比赛进行时间，可直接秒赢，时间单位秒
-                randomtime = random.randint(500,1500)
-                print("随机等待时间:",randomtime)   
-                countdown(randomtime)
-
-            #time.sleep(600)
-
-            #赢/输比赛
-            #WinMatchesUrl=f"https://kards.live.1939api.com/matches/v2/{matchesID}"
-            #otherSide = "left" if f"{Ownside}" == "right" else "right"
-            #winSide = f"{Ownside}" if random.random() < 0.6 else f"{otherSide}"
-                data2 = {
-                    "side": "", 
-                    "action": "end-match", 
-                    "value": 
-                            {
-                    "winner_id": playerID,
-                    "winner_side": f"{Ownside}",
-                    "result": "Victory_DestroyHQ"
-                            }
-                }
-                WinMatchesUrl=f"https://kards.live.1939api.com/matches/v2/{matchesID}"
-                r3=requests.put(WinMatchesUrl,headers=headers,json=data2,verify=False)
-                #print(r3.text)
-                if "OK" in r3.text:
+                if "OK" in r1.text:
+                    #print(r1.text)
                     time.sleep(1)
-                #查看比赛结果
-                getMatchesEndInfoUrl=f"https://kards.live.1939api.com/matches/v2/{matchesID}/post"
-                r4=requests.get(getMatchesEndInfoUrl,headers=headers,verify=False,timeout=3)
-                #print(r4.text)
-                if "winner" in r4.text:
-                    print(r4.text)
-                    print("比赛结束")
-                    JJCount+=1
-                    print("已完成局数:",JJCount)
-                    time.sleep(1)
-                    if JJCount==7 and isJJC:
-                        print("已完成7局比赛")
-                        getReward(headers)
-                        beginJJC(headers)
-                        JJCount=0
-                        global totalMatches
-                        totalMatches+=1
-                        print("已进行"+str(totalMatches)+"局比赛")
-            elif winOrLost == "lost":
-                print("防检测输局[跳过]")
-                time.sleep(1)
+                #获取比赛信息
+                getMatcheID(getMatchesInfoUrl,headers)
+                #随机执行一些动作
+                actionURL = f"https://kards.live.1939api.com/matches/v2/{matchesID}/actions"
+                n = 1
+                #pingUpload(actionURL,headers,n)
 
-        except KeyboardInterrupt:
-            #sys.exit(app.exec_())
-            #driver.quit()
-            #request_thread.join()
-            print("程序已退出")
-        except requests.exceptions.RequestException as e:
-            #sys.exit(app.exec_())
-            #driver.quit()
-            #request_thread.join()
-            print("发生错误:", e)
-            time.sleep(1)
-            pass
+                XStartOfGame(actionURL,headers)
+
+                #deckCollet(headers)
+
+                XActionStartOfTurn(actionURL,headers)
+
+                uploadPlayerPCInfo(headers)
+
+                #for n in range(1,12):
+                #    choiseCard(actionURL,headers,n)
+                #choiseCard(actionURL,headers,n)
+
+                GetMatchData(actionURL,headers,n)
+
+                winOrLost = "win" if random.random() < 1 else "lost"
+                if winOrLost == "win":
+                #print("比赛中...")
+                #Matchtime=random.randint(240,242)
+                #自定义比赛进行时间，可直接秒赢，时间单位秒
+                    randomtime = random.randint(500,1500)
+                    print("随机等待时间:",randomtime)   
+                    countdown(randomtime)
+
+                #time.sleep(600)
+
+                #赢/输比赛
+                #WinMatchesUrl=f"https://kards.live.1939api.com/matches/v2/{matchesID}"
+                #otherSide = "left" if f"{Ownside}" == "right" else "right"
+                #winSide = f"{Ownside}" if random.random() < 0.6 else f"{otherSide}"
+                    data2 = {
+                        "side": "", 
+                        "action": "end-match", 
+                        "value": 
+                                {
+                        "winner_id": playerID,
+                        "winner_side": f"{Ownside}",
+                        "result": "Victory_DestroyHQ"
+                                }
+                    }
+                    WinMatchesUrl=f"https://kards.live.1939api.com/matches/v2/{matchesID}"
+                    r3=requests.put(WinMatchesUrl,headers=headers,json=data2,verify=False)
+                    #print(r3.text)
+                    if "OK" in r3.text:
+                        time.sleep(1)
+                    #查看比赛结果
+                    getMatchesEndInfoUrl=f"https://kards.live.1939api.com/matches/v2/{matchesID}/post"
+                    r4=requests.get(getMatchesEndInfoUrl,headers=headers,verify=False,timeout=3)
+                    #print(r4.text)
+                    if "winner" in r4.text:
+                        print(r4.text)
+                        print("比赛结束")
+                        JJCount+=1
+                        print("已完成局数:",JJCount)
+                        time.sleep(1)
+                        if JJCount==7 and isJJC:
+                            print("已完成7局比赛")
+                            getReward(headers)
+                            beginJJC(headers)
+                            JJCount=0
+                            global totalMatches
+                            totalMatches+=1
+                            print("已进行"+str(totalMatches)+"局比赛")
+                            isTimeToRest=requests.get("https://raw.githubusercontent.com/hellow0rld-lyh/kardsRest/refs/heads/main/isTimeToRest")
+                            print("isTimeToRest:",isTimeToRest.text)
+                            if "False" in isTimeToRest.text or "0" in isTimeToRest.text:
+                                isresting=False
+                                print("不休息")
+                            elif "True" in isTimeToRest.text or "1" in isTimeToRest.text:
+                                isresting=True
+                                print("休息中")
+                elif winOrLost == "lost":
+                    print("防检测输局[跳过]")
+                    time.sleep(1)
+
+            except KeyboardInterrupt:
+                #sys.exit(app.exec_())
+                #driver.quit()
+                #request_thread.join()
+                print("程序已退出")
+            except requests.exceptions.RequestException as e:
+                #sys.exit(app.exec_())
+                #driver.quit()
+                #request_thread.join()
+                print("发生错误:", e)
+                time.sleep(1)
+                pass
 
 if __name__ == "__main__":
     main()
