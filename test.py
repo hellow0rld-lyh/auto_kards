@@ -13,7 +13,7 @@ deckID = 52080704
 # 填写替换你的Cookie
 cookie = "[Put your Cookie In Here]"
 # 填写替换你的JWT_KEY
-JWT_KEY = "JWT eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ1c2VyX25hbWUiOiJsaW5rZXI6MDYzZW02aWhwQG1vem1haWwuY29tIiwidXNlcl9pZCI6MTA0MjE4MDc1LCJpZGVudGl0eV9pZCI6MjA0NDQyMDEyLCJwcm92aWRlciI6ImRldmljZSIsImV4dGVybmFsX2lkIjoiV2luZG93cy0wMEM2RUFDQjQ1REUxRjVERTYxRTUyQTI2Q0YwNjZERiIsInBheW1lbnQiOiJub3RhdmFpbGFibGUiLCJyb2xlcyI6W10sImlhdCI6MTc0MDc0OTM2OSwiZXhwIjoxNzQwODM1NzY5LCJqdGkiOiJiOXgzUE9FUURRd2hKWkpSclJFcyIsImlzcyI6ImthcmRzLWJhY2tlbmQiLCJ0aWVyIjoiTElWRSIsImxhbmd1YWdlIjoiemgtSGFucyIsImNsaWVudF9pZCI6MTU1MjI5ODE0LCJwbGF5ZXJfaWQiOjQxODg2NTB9.pQvpCdaFFoF0YY3BySxslN8kyKlcu-QITnHt5SlEihWfJoEtJ6eyn1FSG7SYwRToUmhVtda06VK7NpTewjxr1FAm8-0nxtOGaIE5fncp4X-elGqtAaOvwYEvw_Y2vmQ0vIaAtaT-t02jQN82j2Fm5Hm21sbCQ7kcSj7lBLxgJ0xdiLQ_p-5N_sqdHY9MC0hW-MKjT0-404zZJG-i2vr2HrN6z2HDWLDgoqTfIW04Zn4bRANrifgnb7INhiFz4AJYkfGadOMlzwfB4JTrBcd-MVd7l8YcJNtSe3p9p1nn8H0k0kR0Z8sUq6Bec3-E1BWQmp36bL-CKoVUR6DKX1Mqhg"
+JWT_KEY = "JWT eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ1c2VyX25hbWUiOiJsaW5rZXI6MDYzZW02aWhwQG1vem1haWwuY29tIiwidXNlcl9pZCI6MTA0MjE4MDc1LCJpZGVudGl0eV9pZCI6MjA0NDQyMDEyLCJwcm92aWRlciI6ImRldmljZSIsImV4dGVybmFsX2lkIjoiV2luZG93cy0wMEM2RUFDQjQ1REUxRjVERTYxRTUyQTI2Q0YwNjZERiIsInBheW1lbnQiOiJub3RhdmFpbGFibGUiLCJyb2xlcyI6W10sImlhdCI6MTc0MDkxMjY5MCwiZXhwIjoxNzQwOTk5MDkwLCJqdGkiOiJwV3FXNjYxT1ptenhyTTcwM3lYRSIsImlzcyI6ImthcmRzLWJhY2tlbmQiLCJ0aWVyIjoiTElWRSIsImxhbmd1YWdlIjoiemgtSGFucyIsImNsaWVudF9pZCI6MTU2OTU2ODk5LCJwbGF5ZXJfaWQiOjQxODg2NTB9.KhSUsbRj_WIgwBv8CX97O-58mAN8aXeQbtTbSVAMOPrwZpfcYst8437FZbUAeko6I7FD0tLOQJjBffnoMbu6mPMGuvJX3-XMqT24VYCRRNnxPHBOxzfUlOVNx2zDLNjPJbFSellvmu4RNWspSYGNkOAXhSxxetCyZUyBvI8tNBPLOwJUNuAGHJfunZaohXuyCGTHRVlc_nfXB5RBwC-Dje08uyfAt9YDt4B0Qpn3nrv57URN-OXu-fsVzVngcP4JEERzgzpdYH-zYkEG0iVUDxNI2tW0bpgmm0plPdRMqwh8jd2leF9zj0Z4_0uTg3lJEK3uvn5WASXsmRomduaMXg"
 urllib3.disable_warnings()
 headers = {
     # 'Drift-Api-Key': '1939-kards-5dcba429f:Kards 1.15.16724.Steam',
@@ -83,19 +83,18 @@ def getJWTKey(headers):
         print("响应内容：", response.text)
 
 # getJWTKey(headers)
-xxx=requests.get("https://raw.githubusercontent.com/hellow0rld-lyh/kardsRest/refs/heads/main/isTimeToRest")
-print(xxx.text)
-# createJJCURL = f"https://kards.live.1939api.com/draft/{playerID}/deck/create"
-# while True:
-#             data = {"pick":1}
-#             headers.update({'Content-Type': 'application/json'})
-#             response = requests.put(createJJCURL,headers=headers,json=data,verify=False)
-#             if response.status_code == 200:
-#                 print("请求成功！")
-#                 print("响应内容：", response.text)
-#             else:
-#                 print("请求失败！")
-#                 print("响应内容：", response.text)
-#             if response.json().get("card_count") == 40:
-#                 break
-#             time.sleep(0.5)
+def getJJCData(headers):   
+    global JJCount
+    JJCount=0
+    jjcDataUrl = f"https://kards.live.1939api.com/draft/{playerID}"
+    jjcData = requests.get(jjcDataUrl,headers=headers,verify=False)
+    JJCount = jjcData.json().get("wins")
+    cardCount = jjcData.json().get("cards")
+    print("JJCount:",JJCount)
+    print("cardCount:",cardCount)
+    if JJCount == 0:
+        return cardCount
+    else:
+        return JJCount
+    
+# print(type(getJJCData(headers)))

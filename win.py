@@ -22,6 +22,8 @@ cookie="[Put your Cookie In Here]"
 #填写替换你的JWT_KEY
 JWT_KEY='x'
 urllib3.disable_warnings()
+beginJJCURL = f"https://kards.live.1939api.com/draft/{playerID}"
+createJJCURL = f"https://kards.live.1939api.com/draft/{playerID}/deck/create"
 def getJWTKey(headers):
     getJWTKeyURL = f"https://kards.live.1939api.com/session"
     headers.pop("Authorization")
@@ -61,6 +63,26 @@ def getJWTKey(headers):
         pass
         # print("状态码：", response.status_code)
         print("响应内容：", response.text)
+def JJCInit(headers):   
+    global JJCount
+    JJCount=0
+    jjcDataUrl = f"https://kards.live.1939api.com/draft/{playerID}"
+    jjcData = requests.get(jjcDataUrl,headers=headers,verify=False)
+    JJCount = jjcData.json().get("wins")
+    cardCount = jjcData.json().get("cards").get("card_count")
+    print("JJCount:",JJCount)
+    print("cardCount:",cardCount)
+    if JJCount == 0: #如果竞技场场次为0
+        if cardCount < 40: #如果卡牌数量小于40
+            deckCollet(headers) #收集卡牌
+        else:   
+            return 0
+    elif JJCount < 7: #如果竞技场场次小于7
+        return JJCount
+    elif JJCount == 7: #如果竞技场场次等于7
+        getReward(headers) #领取奖励
+        JJCInit(headers) #初始化竞技场
+        return 0
 def keep_alive(keepAliveUrl,headers):
     while True:
         try:
@@ -78,6 +100,8 @@ def keep_alive(keepAliveUrl,headers):
         except requests.exceptions.RequestException as e:
             pass
 def getReward(headers):
+    global JJCount
+    JJCount = 0
     rewardURL = f"https://kards.live.1939api.com/draft/{playerID}?new"
     data = {
         "reason": "claim_reward"
@@ -93,18 +117,9 @@ def getReward(headers):
         pass
         #print("状态码：", response.status_code)
     time.sleep(1)   
-def beginJJC(headers):
-    beginJJCURL = f"https://kards.live.1939api.com/draft/{playerID}"
-    createJJCURL = f"https://kards.live.1939api.com/draft/{playerID}/deck/create"
-    data = {}
-    headers.update({'Content-Type': 'application/x-www-form-urlencoded'})
-    response = requests.post(beginJJCURL,headers=headers,json=data,verify=False)
-    if response.status_code == 200:
-        #print("请求成功！")
-        print("响应内容：", response.text)
-        #return response.text
-        requests.get(createJJCURL,headers=headers,verify=False)
-        while True:
+def deckCollet(headers):
+    global createJJCURL
+    while True:
             data = {"pick":random.randint(0,2)}
             headers.update({'Content-Type': 'application/json'})
             response = requests.put(createJJCURL,headers=headers,json=data,verify=False)
@@ -118,7 +133,18 @@ def beginJJC(headers):
                 break
             randomtime = random.uniform(0,1)    
             time.sleep(randomtime)
-        
+def beginJJC(headers):
+    global beginJJCURL
+    global createJJCURL
+    data = {}
+    headers.update({'Content-Type': 'application/x-www-form-urlencoded'})
+    response = requests.post(beginJJCURL,headers=headers,json=data,verify=False)
+    if response.status_code == 200:
+        #print("请求成功！")
+        print("响应内容：", response.text)
+        #return response.text
+        requests.get(createJJCURL,headers=headers,verify=False)
+        deckCollet(headers)        
     else:
         #print("请求失败！")
         pass
@@ -430,7 +456,9 @@ def main():
         sys.exit()
         
     isresting=False
-
+    if isJJC:
+       JJCount = JJCInit(headers)
+    
     while True:
         global isTimeToRest
         if isresting:    
