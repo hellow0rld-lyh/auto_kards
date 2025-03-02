@@ -54,7 +54,7 @@ def getJWTKey(headers):
         # print("响应内容：", response.json())
         JWT_KEY = response.json().get("jwt")
         headers.update({"Authorization": JWT_KEY})  # 更新JWT_KEY
-        print("JWT_KEY:", JWT_KEY)
+        # print("JWT_KEY:", JWT_KEY)
         return JWT_KEY
     else:
         # print("请求失败！")
@@ -252,8 +252,8 @@ def GetMatchData(actionURL,headers,n):
 #计时器
 def countdown(ms):
     for i in range(ms, 0, -1):
-        sys.stdout.write("\r{:2d} ms remaining...".format(i))
-        sys.stdout.flush()
+        # sys.stdout.write("\r{:2d} ms remaining...".format(i))
+        # sys.stdout.flush()
         time.sleep(0.001)
     sys.stdout.write("\rCountdown complete!   \n")
 
@@ -407,7 +407,7 @@ def main():
         'User-Agent': 'kards/++UE5+Release-5.4-CL-35576357 (http-legacy) Windows/10.0.19044.1.256.64bit'
         }
     JWT_KEY = "JWT "+getJWTKey(headers)
-    print(JWT_KEY)
+    # print(JWT_KEY)
     headers.update({"Authorization": JWT_KEY})
     #创建比赛地址
     #比赛ID
