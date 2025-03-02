@@ -418,6 +418,7 @@ def NewPlayerMission(headers):
 
 def main():
     global JWT_KEY
+    global JJCount
     headers = {
         # 'Drift-Api-Key': '1939-kards-5dcba429f:Kards 1.15.16724.Steam',
         # 'X-Api-Key': '1939-kards-5dcba429f:Kards 1.15.16724.Steam',
