@@ -471,6 +471,7 @@ def main():
                 print("休息结束")
                 JWT_KEY = "JWT "+getJWTKey(headers)
                 headers.update({"Authorization": JWT_KEY})
+                JJCount = JJCInit(headers)
             elif "True" in isTimeToRest.text or "1" in isTimeToRest.text:
                 isresting=True
                 print("继续休息")
