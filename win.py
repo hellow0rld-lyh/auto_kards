@@ -72,7 +72,9 @@ def JJCInit(headers):
     print("JJCount:",JJCount)
     print("cardCount:",cardCount)
     if JJCount == 0: #如果竞技场场次为0
-        if cardCount < 40: #如果卡牌数量小于40
+        if cardCount == 0: #如果卡牌数量为0
+            beginJJC(headers) #开始竞技场
+        elif cardCount < 40: #如果卡牌数量小于40
             deckCollet(headers) #收集卡牌
         else:   
             return 0
@@ -542,7 +544,7 @@ def main():
                     if "winner" in r4.text:
                         print(r4.text)
                         print("比赛结束")
-                        JJCount+=1
+                        JJCount = JJCInit(headers)
                         print("已完成局数:",JJCount)
                         time.sleep(1)
                         if JJCount==7 and isJJC:
