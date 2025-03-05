@@ -9,14 +9,14 @@ import sys
 
 #is that new account?
 isNewACount = 0
-isJJC = 1
+isJJC = 1 #是否竞技场 1为竞技场 0为排位
 totalMatches=0
 matchesID=()
 Ownside=()
 #填写替换你的玩家ID
-playerID=4188650
+playerID= 0
 #填写替换你的卡组ID
-deckID=52080704
+deckID= 0
 #填写替换你的Cookie
 cookie="[Put your Cookie In Here]"
 #填写替换你的JWT_KEY
@@ -27,22 +27,7 @@ createJJCURL = f"https://kards.live.1939api.com/draft/{playerID}/deck/create"
 def getJWTKey(headers):
     getJWTKeyURL = f"https://kards.live.1939api.com/session"
     headers.pop("Authorization")
-    data = {
-        "provider": "device_id",
-        "provider_details": {"payment_provider": "XSOLLA"},
-        "client_type": "UE5",
-        "build": "Kards 1.29.20338.launcher",
-        "platform_type": "Windows",
-        "app_guid": "Kards",
-        "version": "Kards 1.29.20338.launcher",
-        "platform_info": '{\r\n\t"device_profile": "Windows",\r\n\t"cpu_vendor": "GenuineIntel",\r\n\t"cpu_brand": "Intel(R) Core(TM) i5-8265U CPU @ 1.60GHz",\r\n\t"gpu_brand": "Intel(R) UHD Graphics 620",\r\n\t"num_cores_physical": 4,\r\n\t"num_cores_logical": 8,\r\n\t"physical_memory_gb": 8,\r\n\t"hash": "2d40d993c9c37c1c70cfcccf72a0eaf44a18f487f5e66d2f8a5e6004a1ca6d21",\r\n\t"locale": "zh-CN"\r\n}',
-        "platform_version": "Windows 10 (21H2) [10.0.19044.5487] ",
-        "account_linking": "",
-        "language": "zh-Hans",
-        "automatic_account_creation": "true",
-        "username": "device:Windows-00C6EACB45DE1F5DE61E52A26CF066DF",
-        "password": "6F56CE9C4F1163FE027105B3A5813DEC",
-    }
+    data = {} #填充data 此处需要抓包获取，在卡兹启动时会请求一次
     configUrl = f"https://kards.live.1939api.com/config"
     configHeaders = {
         'Accept-Encoding': 'deflate, gzip',
@@ -444,7 +429,7 @@ def main():
     if isJJC:
         data1 = { "player_id": playerID,"deck_id":0 , "extra_data": "draft:" }
     else:
-        data1 = { "player_id": playerID, "deck_id": deckID, "extra_data": "unranked" }
+        data1 = { "player_id": playerID, "deck_id": deckID, "extra_data": "" }
     #获取比赛信息
     getMatchesInfoUrl="https://kards.live.1939api.com/matches/v2/"
     keepAliveUrl = f"https://kards.live.1939api.com/players/{playerID}/heartbeat"
@@ -460,13 +445,14 @@ def main():
     isresting=False
     if isJJC:
        JJCount = JJCInit(headers)
-    
+    else:
+        JJCount = 0
     while True:
         global isTimeToRest
         if isresting:    
             print("休息中...")
             time.sleep(300)
-            isTimeToRest=requests.get("https://raw.githubusercontent.com/hellow0rld-lyh/kardsRest/refs/heads/main/isTimeToRest")
+            # isTimeToRest=requests.get("https://raw.githubusercontent.com/hellow0rld-lyh/kardsRest/refs/heads/main/isTimeToRest")
             print("isTimeToRest:",isTimeToRest.text)
             if "False" in isTimeToRest.text or "0" in isTimeToRest.text:
                 isresting=False
@@ -511,7 +497,7 @@ def main():
                 if winOrLost == "win":
                 #print("比赛中...")
                 #Matchtime=random.randint(240,242)
-                #自定义比赛进行时间，可直接秒赢，时间单位秒
+                #自定义比赛进行时间，可直接秒赢，时间单位毫秒
                     randomtime = random.randint(500,1500)
                     print("随机等待时间:",randomtime)   
                     countdown(randomtime)
@@ -555,7 +541,7 @@ def main():
                             global totalMatches
                             totalMatches+=1
                             print("已进行"+str(totalMatches)+"局比赛")
-                            isTimeToRest=requests.get("https://raw.githubusercontent.com/hellow0rld-lyh/kardsRest/refs/heads/main/isTimeToRest")
+                            # isTimeToRest= 休息判断，可自定义
                             print("isTimeToRest:",isTimeToRest.text)
                             if "False" in isTimeToRest.text or "0" in isTimeToRest.text:
                                 isresting=False
