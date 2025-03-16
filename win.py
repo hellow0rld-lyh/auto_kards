@@ -5,153 +5,165 @@ import threading
 import random
 import urllib3
 import sys
-#import curses
 
-#is that new account?
+# import curses
+
+# is that new account?
 isNewACount = 0
-isJJC = 1 #是否竞技场 1为竞技场 0为排位
-totalMatches=0
-matchesID=()
-Ownside=()
-#填写替换你的玩家ID
-playerID= 0
-#填写替换你的卡组ID
-deckID= 0
-#填写替换你的Cookie
-cookie="[Put your Cookie In Here]"
-#填写替换你的JWT_KEY
-JWT_KEY='x'
+isJJC = 1  # 是否竞技场 1为竞技场 0为排位
+totalMatches = 0
+matchesID = ()
+Ownside = ()
+# 填写替换你的玩家ID
+playerID = 0
+# 填写替换你的卡组ID
+deckID = 0
+# 填写替换你的Cookie
+cookie = "[Put your Cookie In Here]"
+# 填写替换你的JWT_KEY
+JWT_KEY = "x"
 urllib3.disable_warnings()
 beginJJCURL = f"https://kards.live.1939api.com/draft/{playerID}"
 createJJCURL = f"https://kards.live.1939api.com/draft/{playerID}/deck/create"
+
+
 def getJWTKey(headers):
     getJWTKeyURL = f"https://kards.live.1939api.com/session"
     headers.pop("Authorization")
-    data = {} #填充data 此处需要抓包获取，在卡兹启动时会请求一次
+    data = {}  # 填充data 此处需要抓包获取，在卡兹启动时会请求一次
     configUrl = f"https://kards.live.1939api.com/config"
     configHeaders = {
-        'Accept-Encoding': 'deflate, gzip',
-        'User-Agent': 'kards/++UE5+Release-5.4-CL-35576357 (http-legacy) Windows/10.0.19044.1.256.64bit'
+        "Accept-Encoding": "deflate, gzip",
+        "User-Agent": "kards/++UE5+Release-5.4-CL-35576357 (http-legacy) Windows/10.0.19044.1.256.64bit",
     }
-    requests.get(configUrl,headers=configHeaders,verify=False)
+    requests.get(configUrl, headers=configHeaders, verify=False)
     response = requests.post(getJWTKeyURL, headers=headers, json=data, verify=False)
     if response.status_code == 200:
         print("请求成功！")
         pass
         # print("响应内容：", response.json())
         JWT_KEY = response.json().get("jwt")
-        headers.update({"Authorization": JWT_KEY})  
+        headers.update({"Authorization": JWT_KEY})
         # print("JWT_KEY:", JWT_KEY)
         return JWT_KEY  # 更新JWT_KEY
     else:
         # print("请求失败！")
         # print("状态码：", response.status_code)
         print("响应内容：", response.text)
-def JJCInit(headers):   
+
+
+def JJCInit(headers):
     global JJCount
-    JJCount=0
+    JJCount = 0
     jjcDataUrl = f"https://kards.live.1939api.com/draft/{playerID}"
-    jjcData = requests.get(jjcDataUrl,headers=headers,verify=False)
+    jjcData = requests.get(jjcDataUrl, headers=headers, verify=False)
     JJCount = jjcData.json().get("wins")
     cardCount = jjcData.json().get("cards").get("card_count")
-    print("JJCount:",JJCount)
-    print("cardCount:",cardCount)
-    if JJCount == 0: #如果竞技场场次为0
-        if cardCount == 0: #如果卡牌数量为0
-            beginJJC(headers) #开始竞技场
-        elif cardCount < 40: #如果卡牌数量小于40
-            deckCollet(headers) #收集卡牌
-        else:   
-            return 0
-    elif JJCount < 7: #如果竞技场场次小于7
-        return JJCount
-    elif JJCount == 7: #如果竞技场场次等于7
-        getReward(headers) #领取奖励
-        JJCInit(headers) #初始化竞技场
+    print("JJCount:", JJCount)
+    print("cardCount:", cardCount)
+    if JJCount == 0:  # 如果竞技场场次为0
+        if cardCount == 0:  # 如果卡牌数量为0
+            beginJJC(headers)  # 开始竞技场
+        elif cardCount < 40:  # 如果卡牌数量小于40
+            deckCollet(headers)  # 收集卡牌
         return 0
-def keep_alive(keepAliveUrl,headers):
+    elif JJCount < 7:  # 如果竞技场场次小于7
+        return JJCount
+    elif JJCount == 7:  # 如果竞技场场次等于7
+        getReward(headers)  # 领取奖励
+        JJCInit(headers)  # 初始化竞技场
+        return 0
+
+
+def keep_alive(keepAliveUrl, headers):
     while True:
         try:
-            response = requests.put(keepAliveUrl,headers=headers,verify=False)
+            response = requests.put(keepAliveUrl, headers=headers, verify=False)
             if response.status_code == 200:
-                #print("请求成功！")
+                # print("请求成功！")
                 pass
-                #print("响应内容：", response.text)
-                #return response.text
+                # print("响应内容：", response.text)
+                # return response.text
             else:
-                #print("请求失败！")
+                # print("请求失败！")
                 pass
-                #print("状态码：", response.status_code)
+                # print("状态码：", response.status_code)
             time.sleep(30)
         except requests.exceptions.RequestException as e:
             pass
+
+
 def getReward(headers):
     global JJCount
     JJCount = 0
     rewardURL = f"https://kards.live.1939api.com/draft/{playerID}?new"
-    data = {
-        "reason": "claim_reward"
-    }
-    response = requests.delete(rewardURL,headers=headers,json=data,verify=False)
+    data = {"reason": "claim_reward"}
+    response = requests.delete(rewardURL, headers=headers, json=data, verify=False)
     if response.status_code == 200:
-        #print("请求成功！")
+        # print("请求成功！")
         pass
         print("响应内容：", response.text)
-        #return response.text
+        # return response.text
     else:
-        #print("请求失败！")
+        # print("请求失败！")
         pass
-        #print("状态码：", response.status_code)
-    time.sleep(1)   
+        # print("状态码：", response.status_code)
+    time.sleep(1)
+
+
 def deckCollet(headers):
     global createJJCURL
     while True:
-            data = {"pick":random.randint(0,2)}
-            headers.update({'Content-Type': 'application/json'})
-            response = requests.put(createJJCURL,headers=headers,json=data,verify=False)
-            if response.status_code == 200:
-                print("请求成功！")
-                print("响应内容：", response.text)
-            else:
-                print("请求失败！")
-                print("响应内容：", response.text)
-            if response.json().get("card_count") == 40:
-                break
-            randomtime = random.uniform(0,1)    
-            time.sleep(randomtime)
+        data = {"pick": random.randint(0, 2)}
+        headers.update({"Content-Type": "application/json"})
+        response = requests.put(createJJCURL, headers=headers, json=data, verify=False)
+        if response.status_code == 200:
+            print("请求成功！")
+            print("响应内容：", response.text)
+        else:
+            print("请求失败！")
+            print("响应内容：", response.text)
+        if response.json().get("card_count") == 40:
+            break
+        randomtime = random.uniform(0, 1)
+        time.sleep(randomtime)
+
+
 def beginJJC(headers):
     global beginJJCURL
     global createJJCURL
     data = {}
-    headers.update({'Content-Type': 'application/x-www-form-urlencoded'})
-    response = requests.post(beginJJCURL,headers=headers,json=data,verify=False)
+    headers.update({"Content-Type": "application/x-www-form-urlencoded"})
+    response = requests.post(beginJJCURL, headers=headers, json=data, verify=False)
     if response.status_code == 200:
-        #print("请求成功！")
+        # print("请求成功！")
         print("响应内容：", response.text)
-        #return response.text
-        requests.get(createJJCURL,headers=headers,verify=False)
-        deckCollet(headers)        
+        # return response.text
+        requests.get(createJJCURL, headers=headers, verify=False)
+        deckCollet(headers)
     else:
-        #print("请求失败！")
+        # print("请求失败！")
         pass
-        #print("状态码：", response.status_code)
-    time.sleep(1) 
-def getMatcheID(getMatchesInfoUrl,headers):
-    #获取比赛信息
+        # print("状态码：", response.status_code)
+    time.sleep(1)
+
+
+def getMatcheID(getMatchesInfoUrl, headers):
+    # 获取比赛信息
     global matchesID
     global Ownside
-    #print(r2.text)
+    # print(r2.text)
     while True:
-        r2=requests.get(getMatchesInfoUrl,headers=headers,verify=False,timeout=3)
+        r2 = requests.get(getMatchesInfoUrl, headers=headers, verify=False, timeout=3)
         if "match_id" in r2.text:
-            #sys.stdout.flush()
+            # sys.stdout.flush()
             print("已找到比赛")
-            res=json.loads(r2.text)
-            matchdata=res['match_and_starting_data']
-            currentMatch=matchdata['match']
-            matchesID=currentMatch.get('match_id')
-            #在哪边
-            Ownside=currentMatch.get('action_side')
+            res = json.loads(r2.text)
+            matchdata = res["match_and_starting_data"]
+            currentMatch = matchdata["match"]
+            matchesID = currentMatch.get("match_id")
+            # 在哪边
+            Ownside = currentMatch.get("action_side")
             time.sleep(1)
             break
         else:
@@ -159,109 +171,129 @@ def getMatcheID(getMatchesInfoUrl,headers):
             sys.stdout.write("\r正在查找比赛...")
             time.sleep(1)
 
-#一些随机的游玩动作
-def pingUpload(actionURL,headers,n):
-    ping = random.randint(610,650)
+
+# 一些随机的游玩动作
+def pingUpload(actionURL, headers, n):
+    ping = random.randint(610, 650)
     data = {
-        "min_action_id": n, 
-        "opponent_id": -2140, #-2120
-        "time_since_opponent_ping": ping
+        "min_action_id": n,
+        "opponent_id": -2140,  # -2120
+        "time_since_opponent_ping": ping,
     }
-    response = requests.post(actionURL,headers=headers,json=data,verify=False)
-    #print("响应内容：", response.text)
+    response = requests.post(actionURL, headers=headers, json=data, verify=False)
+    # print("响应内容：", response.text)
     if response.status_code == 200:
-        #print("请求成功！")
+        # print("请求成功！")
         pass
-        #print("响应内容：", response.text)
-        #return response.text
+        # print("响应内容：", response.text)
+        # return response.text
     else:
-        #print("请求失败！")
+        # print("请求失败！")
         pass
-        #print("状态码：", response.status_code)
+        # print("状态码：", response.status_code)
     time.sleep(1)
 
-def XStartOfGame(actionURL,headers):
-    
+
+def XStartOfGame(actionURL, headers):
+
     data = {
-        "action_id": 1, 
-        "action_type": "XStartOfGame", 
-        "player_id": playerID, 
-        "action_data": {"playerID": playerID}
+        "action_id": 1,
+        "action_type": "XStartOfGame",
+        "player_id": playerID,
+        "action_data": {"playerID": playerID},
     }
-    response = requests.post(actionURL,headers=headers,json=data,verify=False)
+    response = requests.post(actionURL, headers=headers, json=data, verify=False)
     if response.status_code == 200:
-        #print("请求成功！")
+        # print("请求成功！")
         pass
-        #print("响应内容：", response.text)
-        #return response.text
+        # print("响应内容：", response.text)
+        # return response.text
     else:
-        #print("请求失败！")
+        # print("请求失败！")
         pass
-        #print("状态码：", response.status_code)
+        # print("状态码：", response.status_code)
     time.sleep(1)
 
-#choiseCardStart
-def XActionStartOfTurn(actionURL,headers):
-    #n+=1
-    
+
+# choiseCardStart
+def XActionStartOfTurn(actionURL, headers):
+    # n+=1
+
     data = {
-        "action_id": 2, 
-        "action_type": "XActionStartOfTurn", 
-        "player_id": playerID, 
-        "action_data": {"side": f"{Ownside}"}, 
-        "sub_actions": [{"name": "ZActionChangeKredits","side": f"{Ownside}","oldKredits": 0,"newKredits": 1,"oldMaxKredits": 0,"newMaxKredits": 1,"triggerCardID": 0}] 
+        "action_id": 2,
+        "action_type": "XActionStartOfTurn",
+        "player_id": playerID,
+        "action_data": {"side": f"{Ownside}"},
+        "sub_actions": [
+            {
+                "name": "ZActionChangeKredits",
+                "side": f"{Ownside}",
+                "oldKredits": 0,
+                "newKredits": 1,
+                "oldMaxKredits": 0,
+                "newMaxKredits": 1,
+                "triggerCardID": 0,
+            }
+        ],
     }
-    response = requests.post(actionURL,headers=headers,json=data,verify=False)
+    response = requests.post(actionURL, headers=headers, json=data, verify=False)
     if response.status_code == 200:
-        #print("请求成功！")
+        # print("请求成功！")
         pass
-        #print("响应内容：", response.text)
-        #return response.text
+        # print("响应内容：", response.text)
+        # return response.text
     else:
-        #print("请求失败！")
+        # print("请求失败！")
         pass
-        #print("状态码：", response.status_code)
+        # print("状态码：", response.status_code)
     time.sleep(1)
+
 
 def uploadPlayerPCInfo(headers):
     logPlayerURL = f"https://kards.live.1939api.com/players/{playerID}"
     data = {
-	"action": "log-player-event",
-	"value": "event.player.stats.fps;{\"fps\": 60, \"fullscreenMode\": \"Windowed\", \"resolution\": \"2465x1406\", \"scalabilityLevel\": 3}"
-}
-    response = requests.put(logPlayerURL,headers=headers,json=data,verify=False,timeout=3)
-    if response.status_code == 200:
-        #print("请求成功！")
-        pass
-        #print("响应内容：", response.text)
-        #return response.text
-    else:
-        #print("请求失败！")
-        pass
-        #print("状态码：", response.status_code)
-    time.sleep(1)
-
-#比赛数据记录获取
-def GetMatchData(actionURL,headers,n):
-    data = {
-        "min_action_id": n, 
-        "opponent_id": -2140, #-2120
-        "time_since_opponent_ping": 0
+        "action": "log-player-event",
+        "value": 'event.player.stats.fps;{"fps": 60, "fullscreenMode": "Windowed", "resolution": "2465x1406", "scalabilityLevel": 3}',
     }
-    response = requests.put(actionURL,headers=headers,json=data,verify=False,timeout=3)
-    #print("响应内容：", response.text)
+    response = requests.put(
+        logPlayerURL, headers=headers, json=data, verify=False, timeout=3
+    )
     if response.status_code == 200:
-        #print("请求成功！")
+        # print("请求成功！")
         pass
-        #print("响应内容：", response.text)
-        #return response.text
+        # print("响应内容：", response.text)
+        # return response.text
     else:
-        #print("请求失败！")
+        # print("请求失败！")
         pass
-        #print("状态码：", response.status_code)
+        # print("状态码：", response.status_code)
     time.sleep(1)
 
-#计时器
+
+# 比赛数据记录获取
+def GetMatchData(actionURL, headers, n):
+    data = {
+        "min_action_id": n,
+        "opponent_id": -2140,  # -2120
+        "time_since_opponent_ping": 0,
+    }
+    response = requests.put(
+        actionURL, headers=headers, json=data, verify=False, timeout=3
+    )
+    # print("响应内容：", response.text)
+    if response.status_code == 200:
+        # print("请求成功！")
+        pass
+        # print("响应内容：", response.text)
+        # return response.text
+    else:
+        # print("请求失败！")
+        pass
+        # print("状态码：", response.status_code)
+    time.sleep(1)
+
+
+# 计时器
 def countdown(ms):
     for i in range(ms, 0, -1):
         # sys.stdout.write("\r{:2d} ms remaining...".format(i))
@@ -269,107 +301,223 @@ def countdown(ms):
         time.sleep(0.001)
     sys.stdout.write("\rCountdown complete!   \n")
 
-#每日任务，暂未完成
+
+# 每日任务，暂未完成
 def dailyMission(headers):
     dailyMissionURL = f"https://kards.live.1939api.com/players/{playerID}/dailymissions"
 
-#新手任务自动完成，暂时做到第三个，可以继续完善
+
+# 新手任务自动完成，暂时做到第三个，可以继续完善
 def NewPlayerMission(headers):
     NewPlayerMissionURL = f"https://kards.live.1939api.com/players/{playerID}"
     dataGerMan1 = {
-	"action": "log-player-event",
-	"value": "event.player.firebase;{\"event_name\": \"e_2020_select_usa\"}"
+        "action": "log-player-event",
+        "value": 'event.player.firebase;{"event_name": "e_2020_select_usa"}',
     }
 
     dataGerMan2 = {
-	"action": "log-player-event",
-	"value": "event.player.firebase;{\"event_name\": \"e_2021_usa_training_lobby\"}"
+        "action": "log-player-event",
+        "value": 'event.player.firebase;{"event_name": "e_2021_usa_training_lobby"}',
     }
 
     dataGerMan3_1 = {
-	"item_id": "item_lugerinn",
-	"slot": "item_1",
-	"faction": "NotAvailable"
+        "item_id": "item_lugerinn",
+        "slot": "item_1",
+        "faction": "NotAvailable",
     }
 
-    dataGerMan3 = {
-	"item_id": "item_lugerinn",
-	"slot": "item_1",
-	"faction": "usa"
-    }
+    dataGerMan3 = {"item_id": "item_lugerinn", "slot": "item_1", "faction": "usa"}
 
     dataGerMan4 = {
-	"action": "log-player-event",
-	"value": "event.player.firebase;{\"event_name\": \"event.player.9_first_tutorial_match_start\"}"
+        "action": "log-player-event",
+        "value": 'event.player.firebase;{"event_name": "event.player.9_first_tutorial_match_start"}',
     }
 
-    dataGerMan5 = {
-	"action": "set-tutorials-seen",
-	"value": "unlocking_usa_1"
-    }
+    dataGerMan5 = {"action": "set-tutorials-seen", "value": "unlocking_usa_1"}
 
     dataGerMan6 = {
-	"action": "log-player-event",
-	"value": "event.player.firebase;{\"event_name\": \"e_2023_first_german_training_match_finish\"}"
+        "action": "log-player-event",
+        "value": 'event.player.firebase;{"event_name": "e_2023_first_german_training_match_finish"}',
     }
 
     dataGerMan7 = {
-	"action": "log-player-event",
-	"value": "event.player.firebase;{\"event_name\": \"event.player.11_second_tutorial_match_start\"}"
+        "action": "log-player-event",
+        "value": 'event.player.firebase;{"event_name": "event.player.11_second_tutorial_match_start"}',
     }
 
-    dataGerMan8 = {
-	"action": "set-tutorials-seen",
-	"value": "unlocking_usa_2"
-    }
+    dataGerMan8 = {"action": "set-tutorials-seen", "value": "unlocking_usa_2"}
 
     dataGerMan9 = {
-	"action": "log-player-event",
-	"value": "event.player.firebase;{\"event_name\": \"e_2024_second_german_training_match_finish\"}"
+        "action": "log-player-event",
+        "value": 'event.player.firebase;{"event_name": "e_2024_second_german_training_match_finish"}',
     }
 
     NewPlayerUItemURL = f"https://kards.live.1939api.com/players/{playerID}/item"
 
-    r1 = requests.put(NewPlayerMissionURL,headers=headers,json=dataGerMan1,verify=False)
-    r2 = requests.put(NewPlayerMissionURL,headers=headers,json=dataGerMan2,verify=False)
-    r3_1 = requests.post(NewPlayerUItemURL,headers=headers,json=dataGerMan3_1,verify=False)
-    r3 = requests.post(NewPlayerUItemURL,headers=headers,json=dataGerMan3,verify=False)
-    r4 = requests.put(NewPlayerMissionURL,headers=headers,json=dataGerMan4,verify=False)
-    r5 = requests.put(NewPlayerMissionURL,headers=headers,json=dataGerMan5,verify=False)
-    r6 = requests.put(NewPlayerMissionURL,headers=headers,json=dataGerMan6,verify=False)
-    r7 = requests.put(NewPlayerMissionURL,headers=headers,json=dataGerMan7,verify=False)
-    r8 = requests.put(NewPlayerMissionURL,headers=headers,json=dataGerMan8,verify=False)
-    r9 = requests.put(NewPlayerMissionURL,headers=headers,json=dataGerMan9,verify=False)
+    r1 = requests.put(
+        NewPlayerMissionURL, headers=headers, json=dataGerMan1, verify=False
+    )
+    r2 = requests.put(
+        NewPlayerMissionURL, headers=headers, json=dataGerMan2, verify=False
+    )
+    r3_1 = requests.post(
+        NewPlayerUItemURL, headers=headers, json=dataGerMan3_1, verify=False
+    )
+    r3 = requests.post(
+        NewPlayerUItemURL, headers=headers, json=dataGerMan3, verify=False
+    )
+    r4 = requests.put(
+        NewPlayerMissionURL, headers=headers, json=dataGerMan4, verify=False
+    )
+    r5 = requests.put(
+        NewPlayerMissionURL, headers=headers, json=dataGerMan5, verify=False
+    )
+    r6 = requests.put(
+        NewPlayerMissionURL, headers=headers, json=dataGerMan6, verify=False
+    )
+    r7 = requests.put(
+        NewPlayerMissionURL, headers=headers, json=dataGerMan7, verify=False
+    )
+    r8 = requests.put(
+        NewPlayerMissionURL, headers=headers, json=dataGerMan8, verify=False
+    )
+    r9 = requests.put(
+        NewPlayerMissionURL, headers=headers, json=dataGerMan9, verify=False
+    )
 
     NewPlayerLobby = "https://kards.live.1939api.com/singleplayerlobby"
 
+    dataGerMan10 = {
+        "player_id": f"{playerID}",
+        "deck_id": 0,
+        "extra_data": {
+            "match_type": "",
+            "category": "basic",
+            "faction": "britain",
+            "difficulty": "basic",
+            "match_type": "unlocking",
+            "my_deck": {
+                "main_faction": "usa",
+                "ally_faction": "Italy",
+                "cards": [
+                    {"card_type": "card_location_berlin_unlock3_tut", "count": 1},
+                    {"card_type": "card_unit_4_pioneer", "count": 1},
+                    {"card_type": "card_event_combined_arms", "count": 1},
+                    {"card_type": "card_unit_pak_36", "count": 1},
+                    {"card_type": "card_unit_me_bf_109_g", "count": 1},
+                    {"card_type": "card_unit_stug_iii", "count": 1},
+                    {"card_type": "card_unit_grenadier_245", "count": 1},
+                    {"card_type": "card_unit_panzergrenadier", "count": 1},
+                    {"card_type": "card_unit_stug_iii", "count": 1},
+                    {"card_type": "card_unit_4_pioneer", "count": 1},
+                    {"card_type": "card_unit_panzergrenadier", "count": 1},
+                    {"card_type": "card_event_combined_arms", "count": 1},
+                    {"card_type": "card_unit_grenadier_245", "count": 1},
+                    {"card_type": "card_event_eagle_claws", "count": 1},
+                    {"card_type": "card_unit_me_bf_109_g", "count": 1},
+                    {"card_type": "card_unit_panzer_iv_g", "count": 1},
+                    {"card_type": "card_unit_81_infanterie_regiment", "count": 1},
+                    {"card_type": "card_unit_panzer_38_t", "count": 1},
+                    {"card_type": "card_unit_4_pioneer", "count": 1},
+                    {"card_type": "card_unit_panzer_iv_g", "count": 1},
+                    {"card_type": "card_unit_panzer_38_t", "count": 1},
+                    {"card_type": "card_unit_italian_cavalry", "count": 1},
+                    {"card_type": "card_unit_italian_cavalry", "count": 1},
+                    {"card_type": "card_unit_pak_36", "count": 1},
+                    {"card_type": "card_event_eagle_claws", "count": 1},
+                    {"card_type": "card_unit_list_regiment", "count": 1},
+                    {"card_type": "card_unit_panzer_35_t", "count": 1},
+                    {"card_type": "card_unit_ju_87_b2", "count": 1},
+                    {"card_type": "card_unit_ju_87_b2", "count": 1},
+                    {"card_type": "card_unit_wespe_desert", "count": 1},
+                    {"card_type": "card_event_gathering_storm", "count": 1},
+                    {"card_type": "card_unit_me_bf_109_v2", "count": 1},
+                    {"card_type": "card_unit_me_bf_109_v2", "count": 1},
+                ],
+            },
+            "ai_deck": {
+                "main_faction": "Soviet",
+                "ally_faction": "Soviet",
+                "cards": [
+                    {"card_type": "card_location_ai_german_unlock3_tut", "count": 1},
+                    {"card_type": "card_unit_554th_rifles", "count": 1},
+                    {"card_type": "card_unit_95th_rifles_blank", "count": 1},
+                    {"card_type": "card_unit_6th_naval_brigade", "count": 1},
+                    {"card_type": "card_unit_bt_7", "count": 1},
+                    {"card_type": "card_unit_554th_rifles", "count": 1},
+                    {"card_type": "card_event_burning_sky", "count": 1},
+                    {"card_type": "card_unit_i_16_ishak", "count": 1},
+                    {"card_type": "card_unit_bt_7", "count": 1},
+                    {"card_type": "card_unit_95th_rifles_blank", "count": 1},
+                    {"card_type": "card_event_bloody_sickle", "count": 1},
+                    {"card_type": "card_unit_321st_rifles", "count": 1},
+                    {"card_type": "card_unit_89th_infantry", "count": 1},
+                    {"card_type": "card_unit_t_34", "count": 1},
+                    {"card_type": "card_unit_i_16_ishak", "count": 1},
+                    {"card_type": "card_unit_t_70", "count": 1},
+                    {"card_type": "card_unit_t_70", "count": 1},
+                    {"card_type": "card_unit_84th_infantry", "count": 1},
+                    {"card_type": "card_event_burning_sky", "count": 1},
+                    {"card_type": "card_event_from_the_people", "count": 1},
+                    {"card_type": "card_unit_2nd_motor", "count": 1},
+                    {"card_type": "card_unit_2nd_motor", "count": 1},
+                    {"card_type": "card_unit_t_34", "count": 1},
+                    {"card_type": "card_event_bloody_sickle", "count": 1},
+                    {"card_type": "card_event_from_the_people", "count": 1},
+                    {"card_type": "card_unit_321st_rifles", "count": 1},
+                    {"card_type": "card_unit_89th_infantry", "count": 1},
+                    {"card_type": "card_unit_bt_7", "count": 1},
+                    {"card_type": "card_event_critical_hit", "count": 1},
+                    {"card_type": "card_unit_sturmovik", "count": 1},
+                ],
+            },
+            "starting_side": "right",
+            "my_hand_count": "0",
+            "enemy_hand_count": "1",
+            "skip_mulligan": "true",
+            "player_hq": "card_location_berlin_unlock3_tut",
+            "ai_hq": "card_location_ai_german_unlock3_tut",
+        },
+    }
 
-    dataGerMan10 = { "player_id": f"{playerID}", "deck_id": 0, "extra_data": { "match_type": "","category":"basic","faction":"britain","difficulty":"basic","match_type":"unlocking","my_deck":{"main_faction": "usa","ally_faction":"Italy", "cards": [{"card_type":"card_location_berlin_unlock3_tut", "count":1},{"card_type":"card_unit_4_pioneer", "count":1},{"card_type":"card_event_combined_arms", "count":1},{"card_type":"card_unit_pak_36", "count":1},{"card_type":"card_unit_me_bf_109_g", "count":1},{"card_type":"card_unit_stug_iii", "count":1},{"card_type":"card_unit_grenadier_245", "count":1},{"card_type":"card_unit_panzergrenadier", "count":1},{"card_type":"card_unit_stug_iii", "count":1},{"card_type":"card_unit_4_pioneer", "count":1},{"card_type":"card_unit_panzergrenadier", "count":1},{"card_type":"card_event_combined_arms", "count":1},{"card_type":"card_unit_grenadier_245", "count":1},{"card_type":"card_event_eagle_claws", "count":1},{"card_type":"card_unit_me_bf_109_g", "count":1},{"card_type":"card_unit_panzer_iv_g", "count":1},{"card_type":"card_unit_81_infanterie_regiment", "count":1},{"card_type":"card_unit_panzer_38_t", "count":1},{"card_type":"card_unit_4_pioneer", "count":1},{"card_type":"card_unit_panzer_iv_g", "count":1},{"card_type":"card_unit_panzer_38_t", "count":1},{"card_type":"card_unit_italian_cavalry", "count":1},{"card_type":"card_unit_italian_cavalry", "count":1},{"card_type":"card_unit_pak_36", "count":1},{"card_type":"card_event_eagle_claws", "count":1},{"card_type":"card_unit_list_regiment", "count":1},{"card_type":"card_unit_panzer_35_t", "count":1},{"card_type":"card_unit_ju_87_b2", "count":1},{"card_type":"card_unit_ju_87_b2", "count":1},{"card_type":"card_unit_wespe_desert", "count":1},{"card_type":"card_event_gathering_storm", "count":1},{"card_type":"card_unit_me_bf_109_v2", "count":1},{"card_type":"card_unit_me_bf_109_v2", "count":1}]},"ai_deck":{"main_faction": "Soviet","ally_faction":"Soviet", "cards": [{"card_type":"card_location_ai_german_unlock3_tut", "count":1},{"card_type":"card_unit_554th_rifles", "count":1},{"card_type":"card_unit_95th_rifles_blank", "count":1},{"card_type":"card_unit_6th_naval_brigade", "count":1},{"card_type":"card_unit_bt_7", "count":1},{"card_type":"card_unit_554th_rifles", "count":1},{"card_type":"card_event_burning_sky", "count":1},{"card_type":"card_unit_i_16_ishak", "count":1},{"card_type":"card_unit_bt_7", "count":1},{"card_type":"card_unit_95th_rifles_blank", "count":1},{"card_type":"card_event_bloody_sickle", "count":1},{"card_type":"card_unit_321st_rifles", "count":1},{"card_type":"card_unit_89th_infantry", "count":1},{"card_type":"card_unit_t_34", "count":1},{"card_type":"card_unit_i_16_ishak", "count":1},{"card_type":"card_unit_t_70", "count":1},{"card_type":"card_unit_t_70", "count":1},{"card_type":"card_unit_84th_infantry", "count":1},{"card_type":"card_event_burning_sky", "count":1},{"card_type":"card_event_from_the_people", "count":1},{"card_type":"card_unit_2nd_motor", "count":1},{"card_type":"card_unit_2nd_motor", "count":1},{"card_type":"card_unit_t_34", "count":1},{"card_type":"card_event_bloody_sickle", "count":1},{"card_type":"card_event_from_the_people", "count":1},{"card_type":"card_unit_321st_rifles", "count":1},{"card_type":"card_unit_89th_infantry", "count":1},{"card_type":"card_unit_bt_7", "count":1},{"card_type":"card_event_critical_hit", "count":1},{"card_type":"card_unit_sturmovik", "count":1}]},"starting_side":"right","my_hand_count":"0","enemy_hand_count":"1","skip_mulligan":"true","player_hq":"card_location_berlin_unlock3_tut","ai_hq":"card_location_ai_german_unlock3_tut"}}
-
-    r10 = requests.post(NewPlayerLobby,headers=headers,json=dataGerMan10,verify=False)
+    r10 = requests.post(
+        NewPlayerLobby, headers=headers, json=dataGerMan10, verify=False
+    )
 
     NewPlayerMatchURL = "https://kards.live.1939api.com/matches/v2/"
 
-    r11 = requests.get(NewPlayerMatchURL,headers=headers,verify=False)
+    r11 = requests.get(NewPlayerMatchURL, headers=headers, verify=False)
 
-    res=json.loads(r11.text)
+    res = json.loads(r11.text)
     print(r11.text)
-    matchdata=res['match_and_starting_data']
-    currentMatch=matchdata['match']
-    NewPlayerMatchesID=currentMatch.get('match_id')
-    #在哪边
-    Ownside=currentMatch.get('action_side')
+    matchdata = res["match_and_starting_data"]
+    currentMatch = matchdata["match"]
+    NewPlayerMatchesID = currentMatch.get("match_id")
+    # 在哪边
+    Ownside = currentMatch.get("action_side")
     print(Ownside)
-    NewPlayerMatchWinData = { "side": "", "action": "end-match", "value": {"winner_id": f"{playerID}","winner_side": f"{Ownside}","result": "Victory_DestroyHQ"}}
-
-    r12 = requests.put(NewPlayerMatchesID,headers=headers,json=NewPlayerMatchWinData,verify=False)
-
-    dataGerMan11 = {
-	"action": "log-player-event",
-	"value": "event.player.firebase;{\"event_name\": \"e_2025_third_german_training_match_finish\"}"
+    NewPlayerMatchWinData = {
+        "side": "",
+        "action": "end-match",
+        "value": {
+            "winner_id": f"{playerID}",
+            "winner_side": f"{Ownside}",
+            "result": "Victory_DestroyHQ",
+        },
     }
 
-    r13 = requests.put(NewPlayerMissionURL,headers=headers,json=dataGerMan11,verify=False)
+    r12 = requests.put(
+        NewPlayerMatchesID, headers=headers, json=NewPlayerMatchWinData, verify=False
+    )
+
+    dataGerMan11 = {
+        "action": "log-player-event",
+        "value": 'event.player.firebase;{"event_name": "e_2025_third_german_training_match_finish"}',
+    }
+
+    r13 = requests.put(
+        NewPlayerMissionURL, headers=headers, json=dataGerMan11, verify=False
+    )
 
     time.sleep(1)
     r1()
@@ -402,7 +550,6 @@ def NewPlayerMission(headers):
     time.sleep(1)
 
 
-
 def main():
     global JWT_KEY
     global JJCount
@@ -411,160 +558,178 @@ def main():
         # 'X-Api-Key': '1939-kards-5dcba429f:Kards 1.15.16724.Steam',
         # 'Authorization': cookie,
         # # 'User-Agent': 'kards/++UE5+Release-5.2-CL-26001984 Windows/10.0.19045.1.256.64bit'
-        'Accept-Encoding': 'deflate, gzip',
-        'Accept': 'application/json',        
-        'X-Api-Key': '1939-kards-5dcba429f:Kards 1.29.20338.launcher',        
-        'Drift-Api-Key': '1939-kards-5dcba429f:Kards 1.29.20338.launcher',        
-        'Authorization': JWT_KEY,
-        'Content-Type': 'application/json',        
-        'User-Agent': 'kards/++UE5+Release-5.4-CL-35576357 (http-legacy) Windows/10.0.19044.1.256.64bit'
-        }
-    JWT_KEY = "JWT "+getJWTKey(headers)
+        "Accept-Encoding": "deflate, gzip",
+        "Accept": "application/json",
+        "X-Api-Key": "1939-kards-5dcba429f:Kards 1.29.20094.launcher",
+        "Drift-Api-Key": "1939-kards-5dcba429f:Kards 1.29.20094.launcher",
+        "Authorization": JWT_KEY,
+        "Content-Type": "application/json",
+        "User-Agent": "kards/++UE5+Release-5.4-CL-35576357 (http-legacy) Windows/10.0.19044.1.256.64bit",
+    }
+    JWT_KEY = "JWT " + getJWTKey(headers)
     # print(JWT_KEY)
     headers.update({"Authorization": JWT_KEY})
-    #创建比赛地址
-    #比赛ID
-    CreateMatchesUrl="https://kards.live.1939api.com/lobbyplayers"
-    JJCount=0
+    # 创建比赛地址
+    # 比赛ID
+    CreateMatchesUrl = "https://kards.live.1939api.com/lobbyplayers"
+    JJCount = 0
     if isJJC:
-        data1 = { "player_id": playerID,"deck_id":0 , "extra_data": "draft:" }
+        data1 = {"player_id": playerID, "deck_id": 0, "extra_data": "draft:"}
     else:
-        data1 = { "player_id": playerID, "deck_id": deckID, "extra_data": "" }
-    #获取比赛信息
-    getMatchesInfoUrl="https://kards.live.1939api.com/matches/v2/"
+        data1 = {"player_id": playerID, "deck_id": deckID, "extra_data": ""}
+    # 获取比赛信息
+    getMatchesInfoUrl = "https://kards.live.1939api.com/matches/v2/"
     keepAliveUrl = f"https://kards.live.1939api.com/players/{playerID}/heartbeat"
 
-    request_thread = threading.Thread(target=keep_alive, args=(keepAliveUrl,headers))
+    request_thread = threading.Thread(target=keep_alive, args=(keepAliveUrl, headers))
     request_thread.start()
 
     if isNewACount:
         NewPlayerMission(headers)
         print("新手任务已完成,请将isNewACount设置为False")
         sys.exit()
-        
-    isresting=False
+
+    isresting = False
     if isJJC:
-       JJCount = JJCInit(headers)
+        JJCount = JJCInit(headers)
     else:
         JJCount = 0
     while True:
         global isTimeToRest
-        if isresting:    
+        if isresting:
             print("休息中...")
             time.sleep(300)
             # isTimeToRest=requests.get("https://raw.githubusercontent.com/hellow0rld-lyh/kardsRest/refs/heads/main/isTimeToRest")
-            print("isTimeToRest:",isTimeToRest.text)
+            print("isTimeToRest:", isTimeToRest.text)
             if "False" in isTimeToRest.text or "0" in isTimeToRest.text:
-                isresting=False
+                isresting = False
                 print("休息结束")
-                JWT_KEY = "JWT "+getJWTKey(headers)
+                JWT_KEY = "JWT " + getJWTKey(headers)
                 headers.update({"Authorization": JWT_KEY})
                 JJCount = JJCInit(headers)
             elif "True" in isTimeToRest.text or "1" in isTimeToRest.text:
-                isresting=True
+                isresting = True
                 print("继续休息")
-        else:    
+        else:
             try:
                 print("新一轮比赛已开始")
-                #创建比赛
-                r1=requests.post(CreateMatchesUrl,headers=headers,json=data1,verify=False,timeout=3)
-                #print(r1.text)
+                # 创建比赛
+                r1 = requests.post(
+                    CreateMatchesUrl,
+                    headers=headers,
+                    json=data1,
+                    verify=False,
+                    timeout=3,
+                )
+                # print(r1.text)
                 if "OK" in r1.text:
-                    #print(r1.text)
+                    # print(r1.text)
                     time.sleep(1)
-                #获取比赛信息
-                getMatcheID(getMatchesInfoUrl,headers)
-                #随机执行一些动作
-                actionURL = f"https://kards.live.1939api.com/matches/v2/{matchesID}/actions"
+                # 获取比赛信息
+                getMatcheID(getMatchesInfoUrl, headers)
+                # 随机执行一些动作
+                actionURL = (
+                    f"https://kards.live.1939api.com/matches/v2/{matchesID}/actions"
+                )
                 n = 1
-                #pingUpload(actionURL,headers,n)
+                # pingUpload(actionURL,headers,n)
 
-                XStartOfGame(actionURL,headers)
+                XStartOfGame(actionURL, headers)
 
-                #deckCollet(headers)
+                # deckCollet(headers)
 
-                XActionStartOfTurn(actionURL,headers)
+                XActionStartOfTurn(actionURL, headers)
 
                 uploadPlayerPCInfo(headers)
 
-                #for n in range(1,12):
+                # for n in range(1,12):
                 #    choiseCard(actionURL,headers,n)
-                #choiseCard(actionURL,headers,n)
+                # choiseCard(actionURL,headers,n)
 
-                GetMatchData(actionURL,headers,n)
+                GetMatchData(actionURL, headers, n)
 
                 winOrLost = "win" if random.random() < 1 else "lost"
                 if winOrLost == "win":
-                #print("比赛中...")
-                #Matchtime=random.randint(240,242)
-                #自定义比赛进行时间，可直接秒赢，时间单位毫秒
-                    randomtime = random.randint(500,1500)
-                    print("随机等待时间:",randomtime)   
+                    # print("比赛中...")
+                    # Matchtime=random.randint(240,242)
+                    # 自定义比赛进行时间，可直接秒赢，时间单位毫秒
+                    randomtime = random.randint(500, 1500)
+                    print("随机等待时间:", randomtime)
                     countdown(randomtime)
 
-                #time.sleep(600)
+                    # time.sleep(600)
 
-                #赢/输比赛
-                #WinMatchesUrl=f"https://kards.live.1939api.com/matches/v2/{matchesID}"
-                #otherSide = "left" if f"{Ownside}" == "right" else "right"
-                #winSide = f"{Ownside}" if random.random() < 0.6 else f"{otherSide}"
+                    # 赢/输比赛
+                    # WinMatchesUrl=f"https://kards.live.1939api.com/matches/v2/{matchesID}"
+                    # otherSide = "left" if f"{Ownside}" == "right" else "right"
+                    # winSide = f"{Ownside}" if random.random() < 0.6 else f"{otherSide}"
                     data2 = {
-                        "side": "", 
-                        "action": "end-match", 
-                        "value": 
-                                {
-                        "winner_id": playerID,
-                        "winner_side": f"{Ownside}",
-                        "result": "Victory_DestroyHQ"
-                                }
+                        "side": "",
+                        "action": "end-match",
+                        "value": {
+                            "winner_id": playerID,
+                            "winner_side": f"{Ownside}",
+                            "result": "Victory_DestroyHQ",
+                        },
                     }
-                    WinMatchesUrl=f"https://kards.live.1939api.com/matches/v2/{matchesID}"
-                    r3=requests.put(WinMatchesUrl,headers=headers,json=data2,verify=False)
-                    #print(r3.text)
+                    WinMatchesUrl = (
+                        f"https://kards.live.1939api.com/matches/v2/{matchesID}"
+                    )
+                    r3 = requests.put(
+                        WinMatchesUrl, headers=headers, json=data2, verify=False
+                    )
+                    # print(r3.text)
                     if "OK" in r3.text:
                         time.sleep(1)
-                    #查看比赛结果
-                    getMatchesEndInfoUrl=f"https://kards.live.1939api.com/matches/v2/{matchesID}/post"
-                    r4=requests.get(getMatchesEndInfoUrl,headers=headers,verify=False,timeout=3)
-                    #print(r4.text)
+                    # 查看比赛结果
+                    getMatchesEndInfoUrl = (
+                        f"https://kards.live.1939api.com/matches/v2/{matchesID}/post"
+                    )
+                    r4 = requests.get(
+                        getMatchesEndInfoUrl, headers=headers, verify=False, timeout=3
+                    )
+                    # print(r4.text)
                     if "winner" in r4.text:
                         print(r4.text)
                         print("比赛结束")
                         JJCount = JJCInit(headers)
-                        print("已完成局数:",JJCount)
+                        print("已完成局数:", JJCount)
                         time.sleep(1)
-                        if JJCount==7 and isJJC:
+                        if JJCount == 7 and isJJC:
                             print("已完成7局比赛")
                             getReward(headers)
                             beginJJC(headers)
-                            JJCount=0
+                            JJCount = 0
                             global totalMatches
-                            totalMatches+=1
-                            print("已进行"+str(totalMatches)+"局比赛")
+                            totalMatches += 1
+                            print("已进行" + str(totalMatches) + "局比赛")
                             # isTimeToRest= 休息判断，可自定义
-                            print("isTimeToRest:",isTimeToRest.text)
+                            print("isTimeToRest:", isTimeToRest.text)
                             if "False" in isTimeToRest.text or "0" in isTimeToRest.text:
-                                isresting=False
+                                isresting = False
                                 print("不休息")
-                            elif "True" in isTimeToRest.text or "1" in isTimeToRest.text:
-                                isresting=True
+                            elif (
+                                "True" in isTimeToRest.text or "1" in isTimeToRest.text
+                            ):
+                                isresting = True
                                 print("休息中")
                 elif winOrLost == "lost":
                     print("防检测输局[跳过]")
                     time.sleep(1)
 
             except KeyboardInterrupt:
-                #sys.exit(app.exec_())
-                #driver.quit()
-                #request_thread.join()
+                # sys.exit(app.exec_())
+                # driver.quit()
+                # request_thread.join()
                 print("程序已退出")
             except requests.exceptions.RequestException as e:
-                #sys.exit(app.exec_())
-                #driver.quit()
-                #request_thread.join()
+                # sys.exit(app.exec_())
+                # driver.quit()
+                # request_thread.join()
                 print("发生错误:", e)
                 time.sleep(1)
                 pass
+
 
 if __name__ == "__main__":
     main()
