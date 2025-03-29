@@ -15,9 +15,9 @@ totalMatches = 0
 matchesID = ()
 Ownside = ()
 # 填写替换你的玩家ID
-playerID = 0
+playerID = 4748995
 # 填写替换你的卡组ID
-deckID = 0
+deckID = 56329736
 # 填写替换你的Cookie
 cookie = "[Put your Cookie In Here]"
 # 填写替换你的JWT_KEY
@@ -30,7 +30,25 @@ createJJCURL = f"https://kards.live.1939api.com/draft/{playerID}/deck/create"
 def getJWTKey(headers):
     getJWTKeyURL = f"https://kards.live.1939api.com/session"
     headers.pop("Authorization")
-    data = {}  # 填充data 此处需要抓包获取，在卡兹启动时会请求一次
+    data = {
+	"provider": "device_id",
+	"provider_details":
+	{
+		"payment_provider": "XSOLLA"
+	},
+	"client_type": "UE5",
+	"build": "Kards 1.31.21104.launcher",
+	"platform_type": "Windows",
+	"app_guid": "Kards",
+	"version": "Kards 1.31.21104.launcher",
+	"platform_info": "{\r\n\t\"device_profile\": \"Windows\",\r\n\t\"cpu_vendor\": \"GenuineIntel\",\r\n\t\"cpu_brand\": \"Intel(R) Core(TM) i5-8265U CPU @ 1.60GHz\",\r\n\t\"gpu_brand\": \"Intel(R) UHD Graphics 620\",\r\n\t\"num_cores_physical\": 4,\r\n\t\"num_cores_logical\": 8,\r\n\t\"physical_memory_gb\": 8,\r\n\t\"hash\": \"2d40d993c9c37c1c70cfcccf72a0eaf44a18f487f5e66d2f8a5e6004a1ca6d21\",\r\n\t\"locale\": \"zh-CN\"\r\n}",
+	"platform_version": "Windows 10 (21H2) [10.0.19044.5608] ",
+	"account_linking": "{\r\n\t\"username\": \"xmam6b1wl@tnbeta.com\",\r\n\t\"password\": \"12345678\"\r\n}",
+	"language": "zh-Hans",
+	"automatic_account_creation": True,
+	"username": "device:Windows-EE6F8E7A4EB4CAFD3496C1AC32EFFEBA",
+	"password": "376C80434D456BAEADA4888F7D77B123"
+}  # 填充data 此处需要抓包获取，在卡兹启动时会请求一次
     configUrl = f"https://kards.live.1939api.com/config"
     configHeaders = {
         "Accept-Encoding": "deflate, gzip",
@@ -598,18 +616,18 @@ def main():
         global isTimeToRest
         if isresting:
             print("休息中...")
-            time.sleep(300)
-            # isTimeToRest=requests.get("https://raw.githubusercontent.com/hellow0rld-lyh/kardsRest/refs/heads/main/isTimeToRest")
-            print("isTimeToRest:", isTimeToRest.text)
-            if "False" in isTimeToRest.text or "0" in isTimeToRest.text:
-                isresting = False
-                print("休息结束")
-                JWT_KEY = "JWT " + getJWTKey(headers)
-                headers.update({"Authorization": JWT_KEY})
-                JJCount = JJCInit(headers)
-            elif "True" in isTimeToRest.text or "1" in isTimeToRest.text:
-                isresting = True
-                print("继续休息")
+            # time.sleep(300)
+            # # isTimeToRest=requests.get("https://raw.githubusercontent.com/hellow0rld-lyh/kardsRest/refs/heads/main/isTimeToRest")
+            # print("isTimeToRest:", isTimeToRest.text)
+            # if "False" in isTimeToRest.text or "0" in isTimeToRest.text:
+            #     isresting = False
+            #     print("休息结束")
+            #     JWT_KEY = "JWT " + getJWTKey(headers)
+            #     headers.update({"Authorization": JWT_KEY})
+            #     JJCount = JJCInit(headers)
+            # elif "True" in isTimeToRest.text or "1" in isTimeToRest.text:
+            #     isresting = True
+            #     print("继续休息")
         else:
             try:
                 print("新一轮比赛已开始")
@@ -692,7 +710,9 @@ def main():
                     if "winner" in r4.text:
                         print(r4.text)
                         print("比赛结束")
-                        JJCount = JJCInit(headers)
+                        # if isJJC:
+                            # JJCount = JJCInit(headers)
+                        JJCount += 1
                         print("已完成局数:", JJCount)
                         time.sleep(1)
                         if JJCount == 7 and isJJC:
@@ -704,15 +724,15 @@ def main():
                             totalMatches += 1
                             print("已进行" + str(totalMatches) + "局比赛")
                             # isTimeToRest= 休息判断，可自定义
-                            print("isTimeToRest:", isTimeToRest.text)
-                            if "False" in isTimeToRest.text or "0" in isTimeToRest.text:
-                                isresting = False
-                                print("不休息")
-                            elif (
-                                "True" in isTimeToRest.text or "1" in isTimeToRest.text
-                            ):
-                                isresting = True
-                                print("休息中")
+                            # print("isTimeToRest:", isTimeToRest.text)
+                            # if "False" in isTimeToRest.text or "0" in isTimeToRest.text:
+                                # isresting = False
+                                # print("不休息")
+                            # elif (
+                                # "True" in isTimeToRest.text or "1" in isTimeToRest.text
+                            # ):
+                                # isresting = True
+                                # print("休息中")
                 elif winOrLost == "lost":
                     print("防检测输局[跳过]")
                     time.sleep(1)
