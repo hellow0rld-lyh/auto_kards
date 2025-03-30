@@ -718,11 +718,17 @@ def main():
                         if JJCount == 7 and isJJC:
                             print("已完成7局比赛")
                             getReward(headers)
-                            beginJJC(headers)
                             JJCount = 0
                             global totalMatches
                             totalMatches += 1
                             print("已进行" + str(totalMatches) + "局比赛")
+                            
+                            if totalMatches >= 3:
+                                print("已进行3局比赛，休息中...")
+                                # isresting = True
+                                sys.exit()
+                                # time.sleep(300)
+                            beginJJC(headers)
                             # isTimeToRest= 休息判断，可自定义
                             # print("isTimeToRest:", isTimeToRest.text)
                             # if "False" in isTimeToRest.text or "0" in isTimeToRest.text:
